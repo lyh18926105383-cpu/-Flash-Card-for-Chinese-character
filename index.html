@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>识字卡</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg-color: #F5F5F7;
+      --card-color: #FFFFFF;
+      --text-primary: #1D1D1F;
+      --text-secondary: #86868B;
+      --accent-blue: #007AFF;
+      --accent-green: #34C759;
+      --shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+      --shadow-hover: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+      background: var(--bg-color);
+      min-height: 100vh;
+      color: var(--text-primary);
+      overflow-x: hidden;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      background: var(--card-color);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .add-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      border: none;
+      color: white;
+      font-size: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, background 0.2s;
+      box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+    }
+
+    .add-btn:hover {
+      transform: scale(1.05);
+      background: #0066DD;
+    }
+
+    .add-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Main Content */
+    .main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 140px);
+      padding: 40px 20px;
+    }
+
+    /* Card Container */
+    .card-container {
+      perspective: 1200px;
+      width: 100%;
+      max-width: 360px;
+      aspect-ratio: 3 / 4;
+      cursor: pointer;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: 20px;
+      background: var(--card-color);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Card Front */
+    .card-front {
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card-front .character {
+      font-size: 140px;
+      font-weight: 700;
+      color: var(--text-primary);
+      user-select: none;
+    }
+
+    .card-front .tap-hint {
+      position: absolute;
+      bottom: 24px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    /* Card Back */
+    .card-back {
+      transform: rotateY(180deg);
+      padding: 24px;
+    }
+
+    .card-back .audio-btn {
+      align-self: center;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      border: none;
+      color: white;
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.2s, background 0.2s;
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+      margin-top: 8px;
+    }
+
+    .card-back .audio-btn:active {
+      transform: scale(0.9);
+    }
+
+    .card-back .image-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 16px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f0f0f5;
+    }
+
+    .card-back .image-container img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: cover;
+    }
+
+    .card-back .image-placeholder {
+      font-size: 80px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-back .words {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      padding: 16px;
+      background: #f8f8fa;
+      border-radius: 12px;
+    }
+
+    .card-back .word {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text-primary);
+      padding: 6px 14px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .pagination-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #D1D1D6;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .pagination-dot.active {
+      background: var(--accent-blue);
+      transform: scale(1.2);
+    }
+
+    .pagination-dot:hover:not(.active) {
+      background: #A1A1A6;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-state .icon {
+      font-size: 80px;
+      margin-bottom: 24px;
+    }
+
+    .empty-state h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .empty-state p {
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    /* Footer Actions */
+    .footer-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      padding: 24px;
+      background: var(--card-color);
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .footer-btn {
+      padding: 12px 32px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .footer-btn.edit {
+      background: #f0f0f5;
+      color: var(--text-primary);
+    }
+
+    .footer-btn.edit:hover {
+      background: #E5E5EA;
+    }
+
+    .footer-btn.delete {
+      background: #FF3B30;
+      color: white;
+    }
+
+    .footer-btn.delete:hover {
+      background: #D63028;
+    }
+
+    .footer-btn:active {
+      transform: scale(0.97);
+    }
+
+    .footer-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--card-color);
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+      transform: scale(0.9);
+      transition: transform 0.3s;
+    }
+
+    .modal-overlay.active .modal {
+      transform: scale(1);
+    }
+
+    .modal h2 {
+      font-size: 22px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .modal-input {
+      width: 100%;
+      padding: 16px;
+      font-size: 48px;
+      text-align: center;
+      border: 2px solid #E5E5EA;
+      border-radius: 12px;
+      outline: none;
+      font-family: inherit;
+      margin-bottom: 16px;
+      transition: border-color 0.2s;
+    }
+
+    .modal-input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .modal-hint {
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .modal-preview {
+      padding: 16px;
+      background: #f8f8fa;
+      border-radius: 12px;
+      margin-bottom: 24px;
+    }
+
+    .modal-preview .preview-character {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .modal-preview .preview-hint {
+      font-size: 13px;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .modal-preview .image-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .modal-preview .image-option {
+      aspect-ratio: 1;
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: all 0.2s;
+      background: #e0e0e5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-preview .image-option:hover {
+      border-color: #C0C0C8;
+    }
+
+    .modal-preview .image-option.selected {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.3);
+    }
+
+    .modal-preview .image-option img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .modal-preview .image-option .placeholder {
+      font-size: 32px;
+      color: var(--text-secondary);
+    }
+
+    .modal-preview .image-option .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid #D1D1D6;
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .modal-preview .image-option.skip-select {
+      background: #f0f0f5;
+      border: 2px dashed #D1D1D6;
+    }
+
+    .modal-preview .image-option.skip-select:hover {
+      border-color: var(--accent-blue);
+    }
+
+    .modal-preview .image-option.refresh-option {
+      background: #f8f8fa;
+      border: 2px dashed #D1D1D6;
+      cursor: pointer;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .modal-preview .image-option.refresh-option:hover {
+      border-color: var(--accent-blue);
+      background: #f0f0f7;
+    }
+
+    .modal-preview .image-option.refresh-option .refresh-icon {
+      font-size: 24px;
+    }
+
+    .modal-preview .image-option.refresh-option .refresh-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .modal-preview .image-option.skip-select .placeholder {
+      font-size: 14px;
+    }
+
+    .modal-preview .image-option.upload-option {
+      background: #f8f8fa;
+      border: 2px dashed #D1D1D6;
+      cursor: pointer;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .modal-preview .image-option.upload-option:hover {
+      border-color: var(--accent-blue);
+      background: #f0f0f7;
+    }
+
+    .modal-preview .image-option.upload-option .upload-icon {
+      font-size: 24px;
+    }
+
+    .modal-preview .image-option.upload-option .upload-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid #E5E5EA;
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .modal-words {
+      margin-bottom: 24px;
+    }
+
+    .modal-words label {
+      display: block;
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .modal-words input {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 2px solid #E5E5EA;
+      border-radius: 8px;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .modal-words input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .modal-btn.cancel {
+      background: #f0f0f5;
+      color: var(--text-primary);
+    }
+
+    .modal-btn.confirm {
+      background: var(--accent-blue);
+      color: white;
+    }
+
+    .modal-btn:active {
+      transform: scale(0.97);
+    }
+
+    .modal-btn.confirm:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+    }
+
+    .loading-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .loading-overlay .spinner {
+      width: 48px;
+      height: 48px;
+      border-width: 4px;
+      margin-bottom: 16px;
+    }
+
+    .loading-overlay p {
+      color: var(--text-secondary);
+      font-size: 16px;
+    }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      .card-front .character {
+        font-size: 100px;
+      }
+
+      .modal {
+        padding: 24px;
+      }
+
+      .modal-input {
+        font-size: 36px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>识字卡</h1>
+    <button class="add-btn" id="addBtn" aria-label="添加卡片">+</button>
+  </header>
+
+  <main class="main" id="mainContent">
+    <!-- Content will be rendered here -->
+  </main>
+
+  <footer class="footer-actions" id="footerActions" style="display: none;">
+    <button class="footer-btn edit" id="editBtn">编辑</button>
+    <button class="footer-btn delete" id="deleteBtn">删除</button>
+  </footer>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2 id="modalTitle">添加卡片</h2>
+      <input type="text" class="modal-input" id="charInput" placeholder="请输入汉字" maxlength="1">
+      <p class="modal-hint" id="modalHint">输入汉字后选择配图</p>
+      <div class="modal-preview" id="modalPreview" style="display: none;">
+        <div class="preview-character" id="previewChar"></div>
+        <div class="preview-hint" id="previewHint">请选择一张图片</div>
+        <div class="image-grid" id="imageGrid"></div>
+        <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+      </div>
+      <div class="modal-words">
+        <label for="wordsInput">组词（用空格分隔，最多3个）</label>
+        <input type="text" id="wordsInput" placeholder="例如：汉字 汉语 好汉">
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn cancel" id="modalCancel">取消</button>
+        <button class="modal-btn confirm" id="modalConfirm" disabled>确认添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <p>加载中...</p>
+  </div>
+
+  <script>
+    // State
+    let cards = [];
+    let currentIndex = 0;
+    let isFlipped = false;
+    let editingCardId = null;
+    let selectedImage = null;
+    let searchResults = [];
+    let currentImageIndex = 0;
+
+    // DOM Elements
+    const mainContent = document.getElementById('mainContent');
+    const footerActions = document.getElementById('footerActions');
+    const addBtn = document.getElementById('addBtn');
+    const editBtn = document.getElementById('editBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const charInput = document.getElementById('charInput');
+    const modalHint = document.getElementById('modalHint');
+    const modalPreview = document.getElementById('modalPreview');
+    const previewChar = document.getElementById('previewChar');
+    const previewImageContainer = document.getElementById('previewImageContainer');
+    const wordsInput = document.getElementById('wordsInput');
+    const modalCancel = document.getElementById('modalCancel');
+    const modalConfirm = document.getElementById('modalConfirm');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Initialize
+    function init() {
+      loadCards();
+      render();
+      setupEventListeners();
+    }
+
+    // LocalStorage
+    function loadCards() {
+      const saved = localStorage.getItem('识字卡_cards');
+      if (saved) {
+        cards = JSON.parse(saved);
+      }
+    }
+
+    function saveCards() {
+      localStorage.setItem('识字卡_cards', JSON.stringify(cards));
+    }
+
+    // Event Listeners
+    function setupEventListeners() {
+      addBtn.addEventListener('click', openAddModal);
+      editBtn.addEventListener('click', openEditModal);
+      deleteBtn.addEventListener('click', deleteCurrentCard);
+      modalCancel.addEventListener('click', closeModal);
+      modalConfirm.addEventListener('click', confirmAction);
+
+      charInput.addEventListener('input', onCharInput);
+
+      // 文件上传
+      document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+      });
+
+      // Keyboard
+      document.addEventListener('keydown', (e) => {
+        if (modalOverlay.classList.contains('active')) return;
+
+        if (e.key === 'ArrowLeft') goToPrev();
+        if (e.key === 'ArrowRight') goToNext();
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleFlip();
+        }
+      });
+    }
+
+    // Render
+    function render() {
+      if (cards.length === 0) {
+        renderEmptyState();
+        footerActions.style.display = 'none';
+      } else {
+        renderCard();
+        renderPagination();
+        footerActions.style.display = 'flex';
+        editBtn.disabled = false;
+        deleteBtn.disabled = false;
+      }
+    }
+
+    function renderEmptyState() {
+      mainContent.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">📚</div>
+          <h2>还没有识字卡</h2>
+          <p>点击右上角的 + 按钮<br>添加你的第一张识字卡</p>
+        </div>
+      `;
+    }
+
+    function renderCard() {
+      const card = cards[currentIndex];
+      const cardId = `card-${Date.now()}`;
+
+      mainContent.innerHTML = `
+        <div class="card-container" id="${cardId}">
+          <div class="card ${isFlipped ? 'flipped' : ''}" id="cardInner">
+            <div class="card-face card-front">
+              <span class="character">${card.character}</span>
+              <span class="tap-hint">点击翻转</span>
+            </div>
+            <div class="card-face card-back">
+              <button class="audio-btn" aria-label="播放发音">🔊</button>
+              <div class="image-container">
+                ${card.imageUrl
+                  ? `<img src="${card.imageUrl}" alt="${card.character}" loading="lazy">`
+                  : `<div class="image-placeholder">${card.character}</div>`
+                }
+              </div>
+              <div class="words">
+                ${card.words.map(w => `<span class="word">${w}</span>`).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pagination">
+          ${cards.map((_, i) => `
+            <button class="pagination-dot ${i === currentIndex ? 'active' : ''}"
+                    data-index="${i}"
+                    aria-label="第${i + 1}张卡片"></button>
+          `).join('')}
+        </div>
+      `;
+
+      // Event listeners for card
+      const cardContainer = document.getElementById(cardId);
+      const cardInner = document.getElementById('cardInner');
+      const audioBtn = cardContainer.querySelector('.audio-btn');
+      const paginationDots = cardContainer.querySelectorAll('.pagination-dot');
+
+      cardContainer.addEventListener('click', (e) => {
+        if (e.target === audioBtn || e.target.closest('.audio-btn')) {
+          playAudio(card.character);
+          return;
+        }
+        if (e.target.classList.contains('pagination-dot')) return;
+        toggleFlip();
+      });
+
+      paginationDots.forEach(dot => {
+        dot.addEventListener('click', () => {
+          const index = parseInt(dot.dataset.index);
+          goToIndex(index);
+        });
+      });
+    }
+
+    function renderPagination() {
+      // Pagination is included in renderCard
+    }
+
+    // Card Actions
+    function toggleFlip() {
+      isFlipped = !isFlipped;
+      const cardInner = document.getElementById('cardInner');
+      if (cardInner) {
+        cardInner.classList.toggle('flipped', isFlipped);
+        // 翻转后自动播放语音
+        if (isFlipped && cards.length > 0) {
+          playAudio(cards[currentIndex].character);
+        }
+      }
+    }
+
+    function goToNext() {
+      if (cards.length === 0) return;
+      currentIndex = (currentIndex + 1) % cards.length;
+      isFlipped = false;
+      render();
+    }
+
+    function goToPrev() {
+      if (cards.length === 0) return;
+      currentIndex = (currentIndex - 1 + cards.length) % cards.length;
+      isFlipped = false;
+      render();
+    }
+
+    function goToIndex(index) {
+      if (index < 0 || index >= cards.length) return;
+      currentIndex = index;
+      isFlipped = false;
+      render();
+    }
+
+    function playAudio(text) {
+      if ('speechSynthesis' in window) {
+        speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.8;
+        speechSynthesis.speak(utterance);
+      }
+    }
+
+    // Modal
+    function openAddModal() {
+      editingCardId = null;
+      selectedImage = null;
+      searchResults = [];
+      currentImageIndex = 0;
+      modalTitle.textContent = '添加卡片';
+      modalConfirm.textContent = '确认添加';
+      modalHint.style.display = 'block';
+      charInput.value = '';
+      wordsInput.value = '';
+      modalPreview.style.display = 'none';
+      modalConfirm.disabled = true;
+      document.getElementById('imageGrid').innerHTML = '';
+      document.getElementById('previewHint').textContent = '请选择一张图片';
+      modalOverlay.classList.add('active');
+      setTimeout(() => charInput.focus(), 100);
+    }
+
+    function openEditModal() {
+      if (cards.length === 0) return;
+      const card = cards[currentIndex];
+      editingCardId = card.id;
+      modalTitle.textContent = '编辑卡片';
+      modalConfirm.textContent = '保存修改';
+      modalHint.style.display = 'none';
+      charInput.value = card.character;
+      charInput.disabled = true;
+      wordsInput.value = card.words.join(' ');
+      modalPreview.style.display = 'block';
+      previewChar.textContent = card.character;
+      selectedImage = card.imageUrl;
+
+      const imageGrid = document.getElementById('imageGrid');
+      if (card.imageUrl) {
+        imageGrid.innerHTML = `
+          <div class="image-option selected" data-url="${card.imageUrl}">
+            <img src="${card.imageUrl}" alt="${card.character}">
+          </div>
+          <div class="image-option skip-select" data-skip="true"><span class="placeholder">不使用图片</span></div>
+          <div class="image-option skip-select" data-skip="true"><span class="placeholder">不使用图片</span></div>
+          <div class="image-option upload-option"><span class="upload-icon">📤</span><span class="upload-text">上传图片</span></div>
+        `;
+      } else {
+        imageGrid.innerHTML = `
+          <div class="image-option skip-select selected" data-skip="true"><span class="placeholder">不使用图片</span></div>
+          <div class="image-option skip-select" data-skip="true"><span class="placeholder">不使用图片</span></div>
+          <div class="image-option skip-select" data-skip="true"><span class="placeholder">不使用图片</span></div>
+          <div class="image-option upload-option"><span class="upload-icon">📤</span><span class="upload-text">上传图片</span></div>
+        `;
+      }
+      document.getElementById('previewHint').textContent = '点击选择图片或选择不使用图片';
+
+      // Add click handlers
+      imageGrid.querySelectorAll('.image-option').forEach(option => {
+        option.addEventListener('click', () => {
+          if (option.classList.contains('upload-option')) {
+            document.getElementById('imageUpload').click();
+            return;
+          }
+          imageGrid.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
+          option.classList.add('selected');
+          selectedImage = option.dataset.skip ? null : option.dataset.url;
+        });
+      });
+
+      modalConfirm.disabled = false;
+      modalOverlay.classList.add('active');
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+      charInput.disabled = false;
+      modalHint.style.display = 'block';
+    }
+
+    async function onCharInput() {
+      const char = charInput.value.trim();
+
+      if (!char) {
+        modalPreview.style.display = 'none';
+        modalConfirm.disabled = true;
+        return;
+      }
+
+      // Check if it's a Chinese character
+      if (!/[\u4e00-\u9fa5]/.test(char)) {
+        modalHint.textContent = '请输入一个汉字';
+        modalPreview.style.display = 'none';
+        modalConfirm.disabled = true;
+        return;
+      }
+
+      modalHint.textContent = '输入汉字后，获取可选配图';
+      modalPreview.style.display = 'block';
+      previewChar.textContent = char;
+      selectedImage = null;
+      searchResults = [];
+      currentImageIndex = 0;
+
+      // Show loading state
+      const imageGrid = document.getElementById('imageGrid');
+      imageGrid.innerHTML = Array(4).fill().map(() =>
+        `<div class="image-option"><div class="loading-spinner"></div></div>`
+      ).join('');
+
+      document.getElementById('previewHint').style.display = 'block';
+
+      // Search and load first batch
+      searchResults = await fetchMultipleImages(char);
+      await loadNextBatch();
+    }
+
+    async function fetchMultipleImages(char) {
+      // 使用 Wikimedia Commons API
+      try {
+        // 第一步：搜索相关图片
+        const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(char)}+Chinese&srnamespace=6&srlimit=20&format=json&origin=*`;
+        const searchResponse = await fetch(searchUrl);
+
+        if (!searchResponse.ok) return [];
+
+        const searchData = await searchResponse.json();
+        const searchResults = searchData.query?.search || [];
+
+        if (searchResults.length === 0) {
+          // 如果没有结果，尝试只搜索汉字本身
+          const searchUrl2 = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(char)}&srnamespace=6&srlimit=20&format=json&origin=*`;
+          const searchResponse2 = await fetch(searchUrl2);
+          const searchData2 = await searchResponse2.json();
+          searchResults.push(...(searchData2.query?.search || []));
+        }
+
+        if (searchResults.length === 0) return [];
+
+        // 第二步：获取图片文件信息（直接获取缩略图 URL）
+        const titles = searchResults.map(r => r.title.replace(/ /g, '_')).join('|');
+        const propUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${titles}&prop=pageimages&pithumbsize=500&format=json&origin=*`;
+
+        const propResponse = await fetch(propUrl);
+        if (!propResponse.ok) return [];
+
+        const propData = await propResponse.json();
+        const pages = propData.query?.pages || {};
+
+        const results = [];
+        for (const pageId in pages) {
+          const page = pages[pageId];
+          // 跳过不存在的页面和没有缩略图的
+          if (page.missing || !page.thumbnail) continue;
+          results.push({
+            url: page.thumbnail.source,
+            title: page.title
+          });
+        }
+
+        return results.slice(0, 20);
+
+      } catch (e) {
+        console.log('Image search failed:', e);
+        return [];
+      }
+    }
+
+    async function fetchThumbnails(results, startIndex = 0, count = 4) {
+      const validResults = results.slice(startIndex, startIndex + count);
+      if (validResults.length === 0) return { urls: [], hasMore: false };
+
+      const urls = validResults.map(r => r.url).filter(url => url);
+      const nextIndex = startIndex + count;
+
+      return {
+        urls,
+        hasMore: nextIndex < results.length
+      };
+    }
+
+    async function loadNextBatch() {
+      const imageGrid = document.getElementById('imageGrid');
+      const previewHint = document.getElementById('previewHint');
+
+      if (searchResults.length === 0) {
+        imageGrid.innerHTML = `
+          <div class="image-option skip-select selected" data-skip="true">
+            <span class="placeholder">不使用图片</span>
+          </div>
+          <div class="image-option skip-select" data-skip="true">
+            <span class="placeholder">不使用图片</span>
+          </div>
+          <div class="image-option skip-select" data-skip="true">
+            <span class="placeholder">不使用图片</span>
+          </div>
+          <div class="image-option skip-select" data-skip="true">
+            <span class="placeholder">不使用图片</span>
+          </div>
+        `;
+        previewHint.textContent = '未找到相关图片，请选择不使用图片';
+        selectedImage = null;
+        setupImageSelection();
+        return;
+      }
+
+      const { urls, hasMore } = await fetchThumbnails(searchResults, currentImageIndex, 4);
+
+      if (urls.length === 0) {
+        previewHint.textContent = '未找到更多图片';
+        return;
+      }
+
+      // 清空现有内容，显示新图片
+      imageGrid.innerHTML = '';
+
+      urls.forEach((url, idx) => {
+        const option = document.createElement('div');
+        option.className = 'image-option' + (idx === 0 && currentImageIndex === 0 ? ' selected' : '');
+        option.dataset.url = url;
+        option.innerHTML = `<img src="${url}" alt="选项${idx + 1}" loading="lazy">`;
+        imageGrid.appendChild(option);
+      });
+
+      // 添加上传图片按钮
+      const uploadBtn = document.createElement('div');
+      uploadBtn.className = 'image-option upload-option';
+      uploadBtn.innerHTML = `<span class="upload-icon">📤</span><span class="upload-text">上传图片</span>`;
+      uploadBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.getElementById('imageUpload').click();
+      });
+      imageGrid.appendChild(uploadBtn);
+
+      // 如果还有更多结果，添加"换一批"按钮
+      if (hasMore) {
+        const refreshBtn = document.createElement('div');
+        refreshBtn.className = 'image-option refresh-option';
+        refreshBtn.innerHTML = `<span class="refresh-icon">🔄</span><span class="refresh-text">换一批</span>`;
+        refreshBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          currentImageIndex += 4;
+          imageGrid.innerHTML = Array(4).fill().map(() =>
+            `<div class="image-option"><div class="loading-spinner"></div></div>`
+          ).join('');
+          await loadNextBatch();
+        });
+        imageGrid.appendChild(refreshBtn);
+      }
+
+      // 自动选中第一张
+      if (currentImageIndex === 0 && urls.length > 0) {
+        selectedImage = urls[0];
+        modalConfirm.disabled = false;
+      }
+
+      previewHint.textContent = '点击选择一张图片作为配图';
+      setupImageSelection();
+    }
+
+    function setupImageSelection() {
+      const imageGrid = document.getElementById('imageGrid');
+      imageGrid.querySelectorAll('.image-option:not(.refresh-option):not(.upload-option)').forEach(option => {
+        option.onclick = () => {
+          imageGrid.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
+          option.classList.add('selected');
+          selectedImage = option.dataset.skip ? null : option.dataset.url;
+          modalConfirm.disabled = false;
+        };
+      });
+    }
+
+    function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        selectedImage = e.target.result;
+        const imageGrid = document.getElementById('imageGrid');
+        imageGrid.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
+        // 创建一个新的选项显示上传的图片
+        const newOption = document.createElement('div');
+        newOption.className = 'image-option selected';
+        newOption.dataset.url = selectedImage;
+        newOption.innerHTML = `<img src="${selectedImage}" alt="已上传">`;
+        // 替换上传按钮
+        const uploadOption = imageGrid.querySelector('.upload-option');
+        if (uploadOption) {
+          uploadOption.replaceWith(newOption);
+        } else {
+          imageGrid.appendChild(newOption);
+        }
+        // 重新设置选择
+        imageGrid.querySelectorAll('.image-option:not(.upload-option)').forEach(opt => {
+          opt.onclick = () => {
+            imageGrid.querySelectorAll('.image-option').forEach(o => o.classList.remove('selected'));
+            opt.classList.add('selected');
+            selectedImage = opt.dataset.skip ? null : opt.dataset.url;
+            modalConfirm.disabled = false;
+          };
+        });
+        modalConfirm.disabled = false;
+      };
+      reader.readAsDataURL(file);
+      // 清空 input 以便重复选择同一文件
+      event.target.value = '';
+    }
+
+
+    function confirmAction() {
+      const char = charInput.value.trim();
+      const words = wordsInput.value.trim().split(/\s+/).filter(w => w).slice(0, 3);
+
+      if (editingCardId) {
+        // Edit existing
+        const index = cards.findIndex(c => c.id === editingCardId);
+        if (index !== -1) {
+          cards[index].words = words.length > 0 ? words : generateDefaultWords(char);
+          saveCards();
+          render();
+        }
+      } else {
+        // Add new
+        const newCard = {
+          id: generateId(),
+          character: char,
+          imageUrl: selectedImage,
+          words: words.length > 0 ? words : generateDefaultWords(char)
+        };
+        cards.push(newCard);
+        currentIndex = cards.length - 1;
+        saveCards();
+        render();
+      }
+
+      closeModal();
+    }
+
+    function deleteCurrentCard() {
+      if (cards.length === 0) return;
+
+      const card = cards[currentIndex];
+      cards = cards.filter(c => c.id !== card.id);
+
+      if (currentIndex >= cards.length) {
+        currentIndex = Math.max(0, cards.length - 1);
+      }
+      isFlipped = false;
+      saveCards();
+      render();
+    }
+
+    // Helpers
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function generateDefaultWords(char) {
+      // Simple default words - in production could use an API
+      return [char];
+    }
+
+    // Start
+    init();
+  </script>
+</body>
+</html>
