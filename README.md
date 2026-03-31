@@ -2,10 +2,13 @@
 
 一款帮助儿童或汉语学习者学习汉字的工具应用。
 
-## 使用方法
+## 在线访问
 
-### 直接打开
-双击 `index.html` 文件，用浏览器打开即可使用。
+**访问地址：** https://lyh18926105383-cpu.github.io/Flash-Card-Chinese-character/
+
+可在任何设备的浏览器中打开，数据自动同步。
+
+## 使用方法
 
 ### 添加卡片
 1. 点击右上角的 **+** 按钮
@@ -28,7 +31,7 @@
 - 卡片 3D 翻转动画
 - TTS 中文发音（点击音频图标播放）
 - 自动获取配图
-- 本地存储，关闭浏览器不丢失数据
+- **云端同步**：数据保存在 Firebase，不同浏览器和设备自动同步
 - 支持移动端使用
 
 ## 文件结构
@@ -45,10 +48,10 @@
 - 纯 HTML + CSS + JavaScript，无任何依赖
 - 发音使用浏览器 Web Speech API
 - 图片来源 Unsplash
-- 数据存储在浏览器 LocalStorage
+- **数据存储：Firebase Realtime Database（云端）+ LocalStorage（离线备份）**
 
 ## 注意事项
 
 - 音频功能需要浏览器支持 Web Speech API（Chrome、Safari、Edge 均支持）
 - 图片加载需要网络连接，离线时显示占位图
-- 数据存储在本地，清除浏览器缓存会丢失数据
+- 首次加载需要网络连接以访问 Firebase
