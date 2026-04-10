@@ -809,6 +809,35 @@
           toggleFlip();
         }
       });
+
+      // Touch swipe for mobile
+      let touchStartX = 0;
+      let touchEndX = 0;
+
+      document.addEventListener('touchstart', (e) => {
+        // 忽略在 modal 上的触摸
+        if (modalOverlay.classList.contains('active')) return;
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      document.addEventListener('touchend', (e) => {
+        if (modalOverlay.classList.contains('active')) return;
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      }, { passive: true });
+
+      function handleSwipe() {
+        const threshold = 50;
+        const diff = touchStartX - touchEndX;
+
+        if (Math.abs(diff) > threshold) {
+          if (diff > 0) {
+            goToNext();
+          } else {
+            goToPrev();
+          }
+        }
+      }
     }
 
     // Render
